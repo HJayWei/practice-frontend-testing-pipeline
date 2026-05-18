@@ -52,6 +52,23 @@ test.describe('Todos 頁面', () => {
     await expect(page.getByText('沒有待辦事項')).toBeVisible()
   })
 
+  test('清除已完成按鈕', async ({ page }) => {
+    await page.fill('input[type="text"]', '買牛奶')
+    await page.getByTestId('add-btn').click()
+    await page.fill('input[type="text"]', '去健身房')
+    await page.getByTestId('add-btn').click()
+
+    await expect(page.getByTestId('clear-completed')).not.toBeVisible()
+
+    await page.locator('input[type="checkbox"]').first().click()
+    await expect(page.getByTestId('clear-completed')).toBeVisible()
+
+    await page.getByTestId('clear-completed').click()
+    await expect(page.getByTestId('todo-item')).toHaveCount(1)
+    await expect(page.getByText('去健身房')).toBeVisible()
+    await expect(page.getByTestId('clear-completed')).not.toBeVisible()
+  })
+
   test('filter 切換完整流程', async ({ page }) => {
     await page.fill('input[type="text"]', '買牛奶')
     await page.getByTestId('add-btn').click()

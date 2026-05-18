@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FilterType } from '~/composables/useTodos'
 
-const { filter, filteredTodos, remainingCount, addTodo, removeTodo, toggleTodo } = useTodos()
+const { filter, filteredTodos, remainingCount, hasCompleted, addTodo, removeTodo, toggleTodo, clearCompleted } = useTodos()
 
 const filters: { label: string; value: FilterType; testid: string }[] = [
   { label: '全部', value: 'all', testid: 'filter-all' },
@@ -35,5 +35,12 @@ const filters: { label: string; value: FilterType; testid: string }[] = [
       @toggle="toggleTodo"
       @remove="removeTodo"
     />
+
+    <button
+      v-if="hasCompleted"
+      data-testid="clear-completed"
+      class="mt-3 text-sm text-red-500 hover:underline"
+      @click="clearCompleted"
+    >清除已完成</button>
   </div>
 </template>

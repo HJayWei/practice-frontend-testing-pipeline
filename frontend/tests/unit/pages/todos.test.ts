@@ -63,6 +63,35 @@ describe('TodosPage', () => {
     })
   })
 
+  describe('清除已完成', () => {
+    it('沒有已完成 todo 時，清除按鈕不顯示', async () => {
+      const wrapper = await mountSuspended(TodosPage)
+      await wrapper.find('input[type="text"]').setValue('買牛奶')
+      await wrapper.find('[data-testid="add-btn"]').trigger('click')
+      expect(wrapper.find('[data-testid="clear-completed"]').exists()).toBe(false)
+    })
+
+    it('有已完成 todo 時，清除按鈕顯示', async () => {
+      const wrapper = await mountSuspended(TodosPage)
+      await wrapper.find('input[type="text"]').setValue('買牛奶')
+      await wrapper.find('[data-testid="add-btn"]').trigger('click')
+      await wrapper.find('input[type="checkbox"]').trigger('change')
+      expect(wrapper.find('[data-testid="clear-completed"]').exists()).toBe(true)
+    })
+
+    it('點擊清除已完成後，已完成 todo 被移除', async () => {
+      const wrapper = await mountSuspended(TodosPage)
+      await wrapper.find('input[type="text"]').setValue('買牛奶')
+      await wrapper.find('[data-testid="add-btn"]').trigger('click')
+      await wrapper.find('input[type="text"]').setValue('去健身房')
+      await wrapper.find('[data-testid="add-btn"]').trigger('click')
+      await wrapper.find('input[type="checkbox"]').trigger('change')
+      await wrapper.find('[data-testid="clear-completed"]').trigger('click')
+      expect(wrapper.findAll('[data-testid="todo-item"]')).toHaveLength(1)
+      expect(wrapper.text()).toContain('去健身房')
+    })
+  })
+
   describe('filter 切換', () => {
     async function setupWithTwoTodos(wrapper: Awaited<ReturnType<typeof mountSuspended>>) {
       await wrapper.find('input[type="text"]').setValue('買牛奶')
