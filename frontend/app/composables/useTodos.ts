@@ -35,6 +35,11 @@ export function useTodos() {
   })
 
   const remainingCount = computed(() => todos.value.filter((t) => !t.completed).length)
+  const hasCompleted = computed(() => todos.value.some((t) => t.completed))
 
-  return { todos, filter, filteredTodos, remainingCount, addTodo, removeTodo, toggleTodo }
+  function clearCompleted() {
+    todos.value = todos.value.filter((t) => !t.completed)
+  }
+
+  return { todos, filter, filteredTodos, remainingCount, hasCompleted, addTodo, removeTodo, toggleTodo, clearCompleted }
 }

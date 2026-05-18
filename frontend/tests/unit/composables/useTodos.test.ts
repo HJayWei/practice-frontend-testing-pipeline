@@ -84,6 +84,40 @@ describe('useTodos', () => {
     })
   })
 
+  describe('clearCompleted', () => {
+    it('移除所有已完成的 todo，保留未完成的', () => {
+      todos.addTodo('買牛奶')
+      todos.addTodo('去健身房')
+      todos.toggleTodo(todos.todos.value[0].id)
+      todos.clearCompleted()
+      expect(todos.todos.value).toHaveLength(1)
+      expect(todos.todos.value[0].text).toBe('去健身房')
+    })
+
+    it('沒有已完成時清單不變', () => {
+      todos.addTodo('買牛奶')
+      todos.clearCompleted()
+      expect(todos.todos.value).toHaveLength(1)
+    })
+  })
+
+  describe('hasCompleted', () => {
+    it('有已完成 todo 時為 true', () => {
+      todos.addTodo('買牛奶')
+      todos.toggleTodo(todos.todos.value[0].id)
+      expect(todos.hasCompleted.value).toBe(true)
+    })
+
+    it('全部未完成時為 false', () => {
+      todos.addTodo('買牛奶')
+      expect(todos.hasCompleted.value).toBe(false)
+    })
+
+    it('初始狀態為 false', () => {
+      expect(todos.hasCompleted.value).toBe(false)
+    })
+  })
+
   describe('remainingCount', () => {
     it('初始為 0', () => {
       expect(todos.remainingCount.value).toBe(0)
