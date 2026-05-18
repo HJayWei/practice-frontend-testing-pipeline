@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FilterType } from '~/composables/useTodos'
 
-const { todos, filter, filteredTodos, remainingCount, addTodo, removeTodo, toggleTodo } = useTodos()
+const { filter, filteredTodos, remainingCount, addTodo, removeTodo, toggleTodo } = useTodos()
 
 const filters: { label: string; value: FilterType; testid: string }[] = [
   { label: '全部', value: 'all', testid: 'filter-all' },

@@ -5,7 +5,7 @@ test.describe('Todos 頁面', () => {
     await page.goto('/todos')
     // 等待 Vue 在 Nuxt root element 完成 hydration，確保 v-model 事件監聽器已掛載
     await page.waitForFunction(
-      () => !!(document.getElementById('__nuxt') as any)?.__vue_app__,
+      () => !!(document.getElementById('__nuxt') as Element & { __vue_app__?: unknown })?.__vue_app__,
       { timeout: 15000 },
     )
   })
