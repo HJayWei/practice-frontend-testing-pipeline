@@ -88,6 +88,17 @@ podman run --rm \
   -v nuxt_modules:/app/node_modules \
   test-frontend-nuxt:dev \
   sh -c "pnpm run lint"
+
+# E2E 測試（Playwright）
+# 首次需先 build e2e image（Alpine base + 系統 Chromium，與 dev 共用 nuxt_modules volume）
+podman build -f docker/nuxt/Dockerfile --target e2e -t test-frontend-e2e frontend/
+
+# 執行 E2E 測試（webServer 自動啟動 dev server）
+podman run --rm \
+  -v ./frontend:/app \
+  -v nuxt_modules:/app/node_modules \
+  -e PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+  test-frontend-e2e
 ```
 
 ### pnpm 套件管理注意事項（pnpm 11）
@@ -145,6 +156,9 @@ Red → Green → Refactor 循環：
   - 使用 `mountSuspended()` 掛載含非同步操作的元件
   - `~` alias 指向 `app/`（srcDir），import 路徑用 `~/pages/xxx.vue`
 - **Playwright**：完整使用者流程的 E2E 測試
+  - E2E 容器使用 Alpine base + 系統 Chromium（`apk add chromium`），與 dev 容器共用 `nuxt_modules` named volume，避免 musl/glibc native binding 衝突
+  - `playwright.config.ts` 的 `webServer` 讓 Playwright 自動管理 dev server 生命週期
+  - E2E 測試的 `beforeEach` 需等待 `#__nuxt.__vue_app__` 確認 Vue hydration 完成，否則 `v-model` 事件監聽器未掛載，`fill()` 後的值不會進入 Vue 響應式狀態
 
 ## CI/CD 流程
 

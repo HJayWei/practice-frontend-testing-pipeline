@@ -15,6 +15,12 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
+# E2E：Alpine base + 系統 Chromium（與 dev 共享同一 node_modules volume，避免 musl/glibc 衝突）
+FROM base AS e2e
+RUN apk add --no-cache chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+CMD ["sh", "-c", "pnpm install && pnpm run test:e2e"]
+
 # Production：僅複製 .output，以 Bun runtime 執行
 FROM oven/bun:1-alpine AS production
 WORKDIR /app
