@@ -1,6 +1,30 @@
 {
-  "semi": false,
+  "arrowParens": "always",
+  "bracketSameLine": true,
+  "bracketSpacing": true,
+  "semi": true,
+  "experimentalTernaries": false,
   "singleQuote": true,
+  "jsxSingleQuote": false,
+  "quoteProps": "as-needed",
   "trailingComma": "all",
-  "printWidth": 100
+  "singleAttributePerLine": true,
+  "htmlWhitespaceSensitivity": "css",
+  "vueIndentScriptAndStyle": false,
+  "proseWrap": "preserve",
+  "insertPragma": true,
+  "requirePragma": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "embeddedLanguageFormatting": "auto",
+  "printWidth": 120,
+  "overrides": [
+    {
+      "files": ["*.yml", ".prettierrc", "back*.json", "settings.*json", ".mcp.json"],
+      "options": {
+        "tabWidth": 2,
+        "insertPragma": false
+      }
+    }
+  ]
 }
