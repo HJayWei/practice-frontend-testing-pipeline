@@ -54,8 +54,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Unit tests
-        run: pnpm run test
+      - name: Unit tests with coverage
+        run: pnpm run coverage
 
   build:
     name: Build
