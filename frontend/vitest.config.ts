@@ -8,6 +8,12 @@ export default defineVitestConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['app/**/*.{vue,ts}', 'server/**/*.ts'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 70,
+        statements: 80,
+      },
     },
   },
 })
