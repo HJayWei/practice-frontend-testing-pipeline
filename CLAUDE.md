@@ -21,6 +21,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 單元/整合測試 | Vitest 3 + Vue Test Utils + @testing-library/vue + @nuxt/test-utils |
 | E2E 測試 | Playwright |
 | Lint/格式化 | ESLint（`@nuxt/eslint`）+ Prettier |
+| 型別檢查 | vue-tsc（涵蓋 `.vue` 與 `.ts`）|
+| pre-commit hook | Husky v9 + lint-staged |
 | 後端（保留）| Laravel 11（PHP 8.3）|
 | 資料庫（保留）| PostgreSQL 16 |
 | 快取/Session（保留）| Redis 7 |
@@ -82,6 +84,20 @@ podman run --rm \
   test-frontend-nuxt:dev \
   sh -c "pnpm run test tests/unit/pages/index.test.ts"
 
+# Coverage（含 thresholds 驗證：lines/functions/statements 80%，branches 70%）
+podman run --rm \
+  -v ./frontend:/app \
+  -v nuxt_modules:/app/node_modules \
+  test-frontend-nuxt:dev \
+  sh -c "pnpm run coverage"
+
+# Type check（vue-tsc --noEmit，涵蓋 .vue 與 .ts）
+podman run --rm \
+  -v ./frontend:/app \
+  -v nuxt_modules:/app/node_modules \
+  test-frontend-nuxt:dev \
+  sh -c "pnpm run typecheck"
+
 # Lint
 podman run --rm \
   -v ./frontend:/app \
@@ -122,7 +138,8 @@ pnpm install
 ## 專案結構
 
 ```
-├── .github/workflows/ci.yml   # CI：lint → test → build → e2e
+├── .github/workflows/ci.yml   # CI：lint+typecheck / test+coverage 並行 → build → e2e
+├── .husky/pre-commit           # git commit 前自動執行 lint-staged
 ├── docker/
 │   ├── nginx/nginx.conf       # Reverse proxy 設定
 │   ├── nuxt/Dockerfile        # development（Node 22）/ production（Bun）
@@ -133,8 +150,10 @@ pnpm install
 │   ├── tests/
 │   │   ├── unit/              # Vitest 單元測試（對應 app/ 結構）
 │   │   └── e2e/               # Playwright E2E 測試
-│   ├── vitest.config.ts       # 使用 @nuxt/test-utils nuxt environment
+│   ├── vitest.config.ts       # 使用 @nuxt/test-utils nuxt environment，設有 coverage thresholds
 │   ├── playwright.config.ts
+│   ├── eslint.config.mjs      # 繼承 @nuxt/eslint，覆寫 vue/html-self-closing（允許 <input />）
+│   ├── .prettierrc            # Prettier 設定（singleQuote、printWidth 120 等）
 │   ├── nuxt.config.ts
 │   ├── pnpm-workspace.yaml    # pnpm 11 allowBuilds 核准清單（需 commit）
 │   └── package.json
@@ -165,12 +184,16 @@ Red → Green → Refactor 循環：
 `.github/workflows/ci.yml` 在每次 push/PR 執行：
 
 ```
-lint（ESLint）→ test（Vitest）→ build（Nuxt）→ e2e（Playwright）
+lint（ESLint + Type check）↘
+                            → build（Nuxt）→ e2e（Playwright）
+test（Vitest + coverage）   ↗
 ```
 
-- lint 與 test 並行執行
-- build 需兩者通過後才執行
+- **lint job**：ESLint → vue-tsc 型別檢查，兩者皆通過才算成功
+- **test job**：`pnpm run coverage`，coverage 低於 thresholds 直接失敗
+- lint 與 test 並行執行，build 需兩者通過後才執行
 - E2E 失敗時自動上傳 Playwright report artifact
+- `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true`：強制 GitHub Actions 內建套件使用 Node 24 runtime，避免 Node 20 deprecation 警告
 
 ## 注意事項
 
@@ -179,3 +202,6 @@ lint（ESLint）→ test（Vitest）→ build（Nuxt）→ e2e（Playwright）
 - **Bun 作為 production runtime**：Nuxt 建置輸出（`.output/server/index.mjs`）由 `bun run` 執行；開發與 CI 階段使用 Node.js 22 確保 pnpm 相容性。
 - **Laravel 生產注意**：目前使用 `php artisan serve`，適合學習用途。正式部署應改用 php-fpm + nginx 或 Laravel Octane。
 - **BFF routes**：放在 `frontend/server/api/`，內部透過 `LARAVEL_API_URL`（`http://laravel:8000`）呼叫 Laravel，不對瀏覽器直接暴露。
+- **vue-tsc**：`vue-tsc --noEmit` 是 `tsc` 的封裝，同時涵蓋 `.vue` SFC 與 `.ts` 的完整型別推斷。ESLint 的 TS 支援是語法層級，vue-tsc 才能抓到跨檔型別錯誤（例如 prop 型別不符、composable 回傳型別錯誤）。
+- **Husky pre-commit**：`.husky/pre-commit` 執行 `cd frontend && pnpm lint-staged`，只對本次 staged 的 `.vue/.ts/.js` 跑 ESLint --fix + Prettier --write，`.json/.md/.yaml` 只跑 Prettier。`prepare` 加 `|| true` 確保 CI 與容器環境不會因找不到 husky 而失敗。
+- **Coverage thresholds**：`vitest.config.ts` 設定 lines/functions/statements 80%，branches 70%。CI 跑 `pnpm run coverage`，低於門檻直接失敗。
