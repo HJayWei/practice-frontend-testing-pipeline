@@ -14,7 +14,15 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "prepare": "cd .. && husky || true"
+  },
+  "lint-staged": {
+    "*.{vue,ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml}": "prettier --write"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.0",
@@ -33,6 +41,8 @@
     "@vitest/ui": "^3.0.0",
     "@vue/test-utils": "^2.4.0",
     "eslint": "^9.20.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
     "prettier": "^3.5.0",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
